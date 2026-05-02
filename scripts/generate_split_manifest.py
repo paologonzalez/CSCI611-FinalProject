@@ -32,6 +32,7 @@ class_to_idx:
 from __future__ import annotations
 
 import argparse
+import os
 import random
 from collections import defaultdict
 from pathlib import Path
@@ -287,6 +288,8 @@ def main() -> None:
         test_ratio=args.test_ratio,
         seed=args.seed,
     )
+
+    manifest["dataset_root"] = os.path.relpath(dataset_root, output_path.parent)
 
     save_yaml(manifest, output_path)
 

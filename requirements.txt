@@ -1,1 +1,40 @@
+# ============================================================================
+# Pinned dependencies for CSCI611-FinalProject.
+# ============================================================================
+# These versions are known to work together as of mid-2025. If you upgrade
+# one, run the full pipeline once to confirm nothing broke.
+#
+# Install with:
+#     pip install -r requirements.txt
+#
+# Note on torch / torchvision: the versions below are CPU-friendly. If you
+# have a GPU and want CUDA wheels, install torch from the PyTorch index URL
+# instead, e.g.:
+#     pip install torch==2.4.1 torchvision==0.19.1 \
+#         --index-url https://download.pytorch.org/whl/cu121
+# ============================================================================
+
+# Deep-learning core
+torch==2.4.1
+torchvision==0.19.1
+
+# Hyperparameter search
+optuna==4.0.0
+
+# Plotting (training curves, Grad-CAM overlays, confusion matrices)
+matplotlib==3.9.2
+
+# Image I/O (transitively required by torchvision but pinned for clarity)
+Pillow==10.4.0
+
+# Numerical
+numpy==1.26.4
+
+# Config files (split manifest, training configs)
 PyYAML==6.0.3
+
+# Progress bars during training
+tqdm==4.66.5
+
+# Confusion matrix and per-class metrics
+scikit-learn==1.5.2

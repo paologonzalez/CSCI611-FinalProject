@@ -1,0 +1,61 @@
+# ============================================================================
+# CSCI611-FinalProject .gitignore
+# ============================================================================
+# Goal: keep the repo limited to source code, configs, and small artifacts.
+# Datasets, virtual environments, model checkpoints, and runtime outputs all
+# stay local to each teammate's machine.
+# ============================================================================
+
+# ---- Python ---------------------------------------------------------------
+# Compiled bytecode and caches; regenerated automatically on every run.
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# ---- Virtual environment --------------------------------------------------
+# README tells everyone to create a local `venv/`. It's machine-specific
+# (binaries depend on OS and Python version) and must never be committed.
+venv/
+.venv/
+env/
+
+# ---- Editor / OS noise ----------------------------------------------------
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# ---- Notebook checkpoints --------------------------------------------------
+.ipynb_checkpoints/
+
+# ---- Model checkpoints / weights -------------------------------------------
+# Trained PyTorch weights are large (tens to hundreds of MB) and easy to
+# regenerate with the training scripts. Don't commit them.
+*.pt
+*.pth
+*.onnx
+*.ckpt
+
+# ---- Training / Optuna outputs --------------------------------------------
+# Each run writes logs, plots, and intermediate artifacts under outputs/.
+# Optuna stores its study database (when using SQLite storage) as a .db file.
+outputs/
+runs/
+optuna_studies/
+*.db
+*.sqlite
+*.sqlite3
+
+# ---- Dataset --------------------------------------------------------------
+# The dataset lives at ../dataset (sibling of the repo) by team convention,
+# so it shouldn't appear inside the repo. This entry is a safety net in case
+# someone accidentally copies it in.
+dataset/
+data/
+
+# ---- Build / packaging ----------------------------------------------------
+build/
+dist/
+*.egg-info/
