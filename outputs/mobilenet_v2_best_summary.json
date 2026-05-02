@@ -1,0 +1,14 @@
+{
+  "arch": "mobilenet_v2",
+  "best_trial_number": 29,
+  "best_val_acc": 0.9040807740849811,
+  "best_hparams": {
+    "lr": 0.002172804390993739,
+    "weight_decay": 0.000641176656125512,
+    "dropout": 0.1967278050286843,
+    "batch_size": 32,
+    "optimizer": "sgd",
+    "freeze_backbone": false
+  },
+  "n_trials": 31
+}

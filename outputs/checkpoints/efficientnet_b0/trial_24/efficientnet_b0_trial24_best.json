@@ -1,0 +1,42 @@
+{
+  "epoch": 2,
+  "val_acc": 0.7875473285654186,
+  "extra_metadata": {
+    "arch": "efficientnet_b0",
+    "hparams": {
+      "lr": 0.0010800185340246525,
+      "weight_decay": 0.00040830365810060965,
+      "dropout": 0.44764985868058627,
+      "batch_size": 64,
+      "optimizer": "sgd",
+      "cosine_lr_schedule": false
+    },
+    "param_count": 4051102
+  },
+  "history_so_far": [
+    {
+      "epoch": 0,
+      "train_loss": 2.7611483847534894,
+      "train_acc": 0.30584102348993286,
+      "val_loss": 1.8546399543101817,
+      "val_acc": 0.6154816996213714,
+      "epoch_seconds": 74.71513891220093
+    },
+    {
+      "epoch": 1,
+      "train_loss": 1.74824586250638,
+      "train_acc": 0.5606124161073825,
+      "val_loss": 1.2135538885735844,
+      "val_acc": 0.7101388304585612,
+      "epoch_seconds": 74.33730292320251
+    },
+    {
+      "epoch": 2,
+      "train_loss": 1.3139591951098217,
+      "train_acc": 0.6544672818791947,
+      "val_loss": 0.8612489401228447,
+      "val_acc": 0.7875473285654186,
+      "epoch_seconds": 73.67611384391785
+    }
+  ]
+}

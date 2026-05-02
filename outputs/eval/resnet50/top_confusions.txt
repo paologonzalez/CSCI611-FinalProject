@@ -1,0 +1,20 @@
+Top confusions for ResNet50
+==============================
+
+true                      -> predicted                  count  frac
+----------------------------------------------------------------------
+Taco                      -> Taquito                      10     6.7%
+Hot Dog                   -> Taco                          5     3.2%
+Baked Potato              -> Fries                         4     2.7%
+apple_pie                 -> chicken_curry                 4     4.0%
+ice_cream                 -> apple_pie                     4     4.0%
+ice_cream                 -> cheesecake                    4     4.0%
+Hot Dog                   -> Sandwich                      3     1.9%
+Taco                      -> Baked Potato                  3     2.0%
+Taco                      -> Crispy Chicken                3     2.0%
+Taco                      -> Fries                         3     2.0%
+Taco                      -> Sandwich                      3     2.0%
+Taquito                   -> Crispy Chicken                3     2.0%
+Taquito                   -> Fries                         3     2.0%
+apple_pie                 -> cheesecake                    3     3.0%
+cheesecake                -> apple_pie                     3     3.0%

@@ -39,14 +39,25 @@ Thumbs.db
 *.ckpt
 
 # ---- Training / Optuna outputs --------------------------------------------
-# Each run writes logs, plots, and intermediate artifacts under outputs/.
-# Optuna stores its study database (when using SQLite storage) as a .db file.
-outputs/
+# We TRACK outputs/ so teammates can pull the report, eval results, the
+# Optuna study DBs, and the single BEST checkpoint per architecture (enough
+# to re-run evaluation and Grad-CAM from a fresh clone). Trial checkpoints
+# other than those three winners stay local -- they're large and easy to
+# regenerate by re-running the sweeps.
 runs/
-optuna_studies/
 *.db
 *.sqlite
 *.sqlite3
+
+# Re-include the per-arch Optuna study databases (small; useful for resuming
+# a search or for `report.py` to rebuild plots).
+!outputs/optuna_studies/*.db
+
+# Re-include just the winning checkpoint per architecture. The global `*.pt`
+# rule above still excludes every other trial's weights.
+!outputs/checkpoints/mobilenet_v2/trial_29/mobilenet_v2_trial29_best.pt
+!outputs/checkpoints/efficientnet_b0/trial_5/efficientnet_b0_trial5_best.pt
+!outputs/checkpoints/resnet50/trial_18/resnet50_trial18_best.pt
 
 # ---- Dataset --------------------------------------------------------------
 # The dataset lives at ../dataset (sibling of the repo) by team convention,

@@ -1,0 +1,14 @@
+{
+  "arch": "resnet50",
+  "best_trial_number": 18,
+  "best_val_acc": 0.9225915018931427,
+  "best_hparams": {
+    "lr": 4.255433424788548e-05,
+    "weight_decay": 1.9595712578988492e-05,
+    "dropout": 0.13345187603777633,
+    "batch_size": 16,
+    "optimizer": "adamw",
+    "label_smoothing": 0.0977266465595078
+  },
+  "n_trials": 20
+}

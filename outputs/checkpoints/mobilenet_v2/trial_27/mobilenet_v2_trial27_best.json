@@ -1,0 +1,42 @@
+{
+  "epoch": 2,
+  "val_acc": 0.5683634833824148,
+  "extra_metadata": {
+    "arch": "mobilenet_v2",
+    "hparams": {
+      "lr": 0.00041615299659500556,
+      "weight_decay": 0.0009576484075199088,
+      "dropout": 0.28955265227408483,
+      "batch_size": 64,
+      "optimizer": "sgd",
+      "freeze_backbone": false
+    },
+    "param_count": 2267426
+  },
+  "history_so_far": [
+    {
+      "epoch": 0,
+      "train_loss": 3.190305323408754,
+      "train_acc": 0.15305159395973153,
+      "val_loss": 2.8485561986906367,
+      "val_acc": 0.3504417332772402,
+      "epoch_seconds": 74.0112521648407
+    },
+    {
+      "epoch": 1,
+      "train_loss": 2.6563481748504127,
+      "train_acc": 0.35109060402684567,
+      "val_loss": 2.2971135561938643,
+      "val_acc": 0.5191417753470762,
+      "epoch_seconds": 73.43823075294495
+    },
+    {
+      "epoch": 2,
+      "train_loss": 2.240994752253462,
+      "train_acc": 0.4506082214765101,
+      "val_loss": 1.8719561533312061,
+      "val_acc": 0.5683634833824148,
+      "epoch_seconds": 72.93894672393799
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+Top confusions for EfficientNet-B0
+=====================================
+
+true                      -> predicted                  count  frac
+----------------------------------------------------------------------
+Taco                      -> Taquito                       6     4.0%
+Fries                     -> Taco                          5     3.3%
+Taquito                   -> Taco                          5     3.3%
+chicken_curry             -> omelette                      5     5.0%
+Hot Dog                   -> Taco                          4     2.6%
+Sandwich                  -> Hot Dog                       4     2.7%
+Taco                      -> Crispy Chicken                4     2.7%
+Taco                      -> Hot Dog                       4     2.7%
+Taco                      -> Sandwich                      4     2.7%
+apple_pie                 -> cheesecake                    4     4.0%
+ice_cream                 -> cheesecake                    4     4.0%
+Crispy Chicken            -> Sandwich                      3     2.0%
+Sandwich                  -> Crispy Chicken                3     2.0%
+Taquito                   -> Crispy Chicken                3     2.0%
+Taquito                   -> Hot Dog                       3     2.0%

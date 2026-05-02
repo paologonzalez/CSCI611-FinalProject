@@ -1,0 +1,20 @@
+Top confusions for MobileNetV2
+=================================
+
+true                      -> predicted                  count  frac
+----------------------------------------------------------------------
+Taco                      -> Taquito                      10     6.7%
+Taco                      -> Hot Dog                       6     4.0%
+apple_pie                 -> cheesecake                    6     6.0%
+apple_pie                 -> chicken_curry                 6     6.0%
+Hot Dog                   -> Donut                         5     3.2%
+Hot Dog                   -> Sandwich                      5     3.2%
+Hot Dog                   -> Taco                          5     3.2%
+Taco                      -> Crispy Chicken                5     3.3%
+Taquito                   -> Sandwich                      5     3.3%
+Sandwich                  -> Taco                          4     2.7%
+chicken_curry             -> omelette                      4     4.0%
+ice_cream                 -> cheesecake                    4     4.0%
+Baked Potato              -> Fries                         3     2.0%
+Crispy Chicken            -> Baked Potato                  3     2.0%
+Taco                      -> Sandwich                      3     2.0%

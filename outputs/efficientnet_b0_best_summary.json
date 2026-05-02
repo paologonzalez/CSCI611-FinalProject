@@ -1,0 +1,14 @@
+{
+  "arch": "efficientnet_b0",
+  "best_trial_number": 5,
+  "best_val_acc": 0.9221708035338663,
+  "best_hparams": {
+    "lr": 0.008105016126411584,
+    "weight_decay": 0.00021154290797261214,
+    "dropout": 0.46974947078209456,
+    "batch_size": 64,
+    "optimizer": "sgd",
+    "cosine_lr_schedule": false
+  },
+  "n_trials": 25
+}

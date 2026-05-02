@@ -1,0 +1,16 @@
+true_class,predicted_class,count,fraction_of_true
+Taco,Taquito,6,0.0400
+Fries,Taco,5,0.0333
+Taquito,Taco,5,0.0333
+chicken_curry,omelette,5,0.0500
+Hot Dog,Taco,4,0.0256
+Sandwich,Hot Dog,4,0.0267
+Taco,Crispy Chicken,4,0.0267
+Taco,Hot Dog,4,0.0267
+Taco,Sandwich,4,0.0267
+apple_pie,cheesecake,4,0.0400
+ice_cream,cheesecake,4,0.0400
+Crispy Chicken,Sandwich,3,0.0200
+Sandwich,Crispy Chicken,3,0.0200
+Taquito,Crispy Chicken,3,0.0200
+Taquito,Hot Dog,3,0.0200
