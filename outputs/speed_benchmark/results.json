@@ -1,0 +1,53 @@
+[
+  {
+    "arch": "resnet50",
+    "checkpoint": "outputs/checkpoints/resnet50/trial_18/resnet50_trial18_best.pt",
+    "checkpoint_mb": 94.633322,
+    "param_count": 23577698,
+    "device": "cuda",
+    "latency": {
+      "median_ms": 2.7384305012674304,
+      "p95_ms": 3.3962581490413863,
+      "p99_ms": 4.0431800883379765
+    },
+    "throughput": {
+      "batch_size": 32,
+      "images_per_sec": 1476.9638149942607,
+      "batch_ms": 21.666069049988437
+    }
+  },
+  {
+    "arch": "efficientnet_b0",
+    "checkpoint": "outputs/checkpoints/efficientnet_b0/trial_5/efficientnet_b0_trial5_best.pt",
+    "checkpoint_mb": 16.510354,
+    "param_count": 4051102,
+    "device": "cuda",
+    "latency": {
+      "median_ms": 3.709284001160995,
+      "p95_ms": 4.825065748264024,
+      "p99_ms": 5.659643598992259
+    },
+    "throughput": {
+      "batch_size": 32,
+      "images_per_sec": 3270.1919477267825,
+      "batch_ms": 9.78535832498892
+    }
+  },
+  {
+    "arch": "mobilenet_v2",
+    "checkpoint": "outputs/checkpoints/mobilenet_v2/trial_29/mobilenet_v2_trial29_best.pt",
+    "checkpoint_mb": 9.320154,
+    "param_count": 2267426,
+    "device": "cuda",
+    "latency": {
+      "median_ms": 2.3343590000877157,
+      "p95_ms": 3.1821531018067573,
+      "p99_ms": 4.042989312110876
+    },
+    "throughput": {
+      "batch_size": 32,
+      "images_per_sec": 4030.478013748177,
+      "batch_ms": 7.939504915011639
+    }
+  }
+]
