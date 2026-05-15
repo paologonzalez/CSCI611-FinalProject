@@ -144,7 +144,7 @@ python -m src.gradcam \
 ### 5. Generate report figures
 
 ```bash
-python scripts/report.py
+python scripts/generate_figures.py
 ```
 
 Writes accuracy plots, Optuna optimization history, and a comparison table to
@@ -179,7 +179,7 @@ CSCI611-FinalProject/
 │   ├── benchmark_speed.py       # inference speed benchmark
 │   ├── generate_split_manifest.py
 │   ├── gradcam_compare.py       # early vs. late layer Grad-CAM across all arches
-│   └── report.py                # report figures and tables
+│   └── generate_figures.py      # report figures and tables
 └── src/
     ├── data_prep.py             # dataset loading, transforms, manifest parsing
     ├── evaluate.py              # test-set evaluation
