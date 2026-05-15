@@ -78,6 +78,9 @@ python scripts/generate_split_manifest.py \
 
 ### 1. Train each architecture
 
+> **Training is not required.** The best checkpoint for each architecture is
+> committed to the repo. You only need the dataset downloaded locally (step above).
+
 Each script runs an Optuna sweep and saves the best checkpoint to
 `outputs/checkpoints/<arch>/trial_<N>/`.
 
@@ -96,9 +99,6 @@ Best hyperparameters found per arch:
 | MobileNetV2 | SGD | 2.2e-3 | 32 | 0.20 | backbone unfrozen |
 
 ### 2. Evaluate on the test set
-
-> **Training is not required.** The best checkpoint for each architecture is
-> committed to the repo. You only need the dataset downloaded locally (step above).
 
 ```bash
 python -m src.evaluate --arch resnet50
