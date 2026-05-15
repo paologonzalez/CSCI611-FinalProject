@@ -45,6 +45,8 @@ pip install -r requirements.txt
 
 ## Dataset
 
+Download from Kaggle: https://www.kaggle.com/datasets/harishkumardatalab/food-image-classification-dataset
+
 The dataset lives at `../dataset` (one level above the repo root), organized as:
 
 ```
