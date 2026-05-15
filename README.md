@@ -100,10 +100,18 @@ Best hyperparameters found per arch:
 
 ### 2. Evaluate on the test set
 
+> **Training is not required.** The best checkpoint for each architecture is
+> committed to the repo. You only need the dataset downloaded locally (step above).
+
 ```bash
-python -m src.evaluate --arch resnet50
-python -m src.evaluate --arch efficientnet_b0
-python -m src.evaluate --arch mobilenet_v2
+python -m src.evaluate --arch resnet50 \
+    --checkpoint outputs/checkpoints/resnet50/trial_18/resnet50_trial18_best.pt
+
+python -m src.evaluate --arch efficientnet_b0 \
+    --checkpoint outputs/checkpoints/efficientnet_b0/trial_5/efficientnet_b0_trial5_best.pt
+
+python -m src.evaluate --arch mobilenet_v2 \
+    --checkpoint outputs/checkpoints/mobilenet_v2/trial_29/mobilenet_v2_trial29_best.pt
 ```
 
 Writes per-class accuracy, confusion matrix, and metrics JSON to `outputs/eval/<arch>/`.
