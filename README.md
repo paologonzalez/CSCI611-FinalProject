@@ -1,82 +1,68 @@
-## Environment Setup
+# CSCI 611 — Food Image Classification Benchmark
 
-We use a Python virtual environment to ensure consistent dependencies across all team members.
-
-### 1. Create a Virtual Environment
-
-From the root of the project:
-
-```bash
-python -m venv venv
-```
-
-### 2. Activate the Virtual Environment
-
-* **Mac/Linux:**
-
-```bash
-source venv/bin/activate
-```
-
-* **Windows:**
-
-```bash
-venv\Scripts\activate
-```
-
-You should now see `(venv)` in your terminal.
+Benchmarks three CNN architectures on a 34-class food image dataset (~24k images).
+The goal is to compare accuracy, inference speed, and model size across a heavy
+(ResNet50), intermediate (EfficientNet-B0), and light (MobileNetV2) architecture,
+all fine-tuned from ImageNet pretrained weights with Optuna hyperparameter tuning.
 
 ---
 
-### 3. Install Dependencies
+## Results
 
-Install required packages:
+| Model | Params | Size (MB) | Val Acc | Test Top-1 | Test Top-5 | Latency (ms) | Throughput (img/s) |
+|---|---|---|---|---|---|---|---|
+| ResNet50 | 23.6M | 94.6 | 92.3% | **92.7%** | 99.3% | 2.74 | 1,477 |
+| EfficientNet-B0 | 4.1M | 16.5 | 92.2% | 92.2% | **99.5%** | 3.71 | 3,270 |
+| MobileNetV2 | 2.3M | **9.3** | 90.4% | 91.1% | 99.3% | **2.33** | **4,030** |
+
+Benchmarked on GPU (CUDA). EfficientNet-B0 matches ResNet50 accuracy at 1/6th the
+size and 2× the throughput. MobileNetV2 is the fastest and smallest at a ~1.6%
+accuracy cost.
+
+---
+
+## Setup
+
+### 1. Create and activate virtual environment
+
+```bash
+python -m venv venv
+
+# Mac/Linux
+source venv/bin/activate
+
+# Windows
+venv\Scripts\activate
+```
+
+### 2. Install dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-If `requirements.txt` does not exist yet, install manually (example):
+---
 
-```bash
-pip install pyyaml torch torchvision optuna matplotlib
+## Dataset
+
+The dataset lives at `../dataset` (one level above the repo root), organized as:
+
+```
+dataset/
+  Baked Potato/
+  Crispy Chicken/
+  ...  (34 classes total)
 ```
 
----
+| Split | Images |
+|---|---|
+| Train | 19,092 |
+| Val | 2,377 |
+| Test | 2,404 |
+| **Total** | **23,873** |
 
-### 4. Saving Dependencies
-
-After installing new packages, update the dependency list:
-
-```bash
-pip freeze > requirements.txt
-```
-
-This ensures all team members can reproduce the exact environment.
-
----
-
-### ⚠️ Important Notes
-
-* Do **NOT** commit the `venv/` folder to GitHub
-* Only commit `requirements.txt`
-* The virtual environment is machine-specific and should be recreated locally
-
----
-
-## Dataset Split Configuration (YAML)
-
-We use a YAML file to define which images belong to the training, validation, and test sets. This ensures:
-
-* Reproducibility
-* Consistent evaluation across models
-* Fair comparison during hyperparameter tuning
-
----
-
-### Generating the Split File
-
-Run:
+The split manifest (`configs/data_split.yaml`) is already committed. To regenerate
+it from a different dataset root:
 
 ```bash
 python scripts/generate_split_manifest.py \
@@ -86,69 +72,120 @@ python scripts/generate_split_manifest.py \
 
 ---
 
-### YAML File Structure
+## Workflow
 
-Example:
+### 1. Train each architecture
 
-```yaml
-dataset_root: ../dataset
-seed: 42
+Each script runs an Optuna sweep and saves the best checkpoint to
+`outputs/checkpoints/<arch>/trial_<N>/`.
 
-splits:
-  train:
-    - path: Baked Potato/img1.jpeg
-      label: Baked Potato
-      class_idx: 0
-
-  val:
-    - path: Crispy Chicken/img2.jpeg
-      label: Crispy Chicken
-      class_idx: 1
-
-  test:
-    - path: Baked Potato/img3.jpeg
-      label: Baked Potato
-      class_idx: 0
-
-class_to_idx:
-  Baked Potato: 0
-  Crispy Chicken: 1
+```bash
+python -m src.train_resnet
+python -m src.train_efficientnet
+python -m src.train_mobilenet
 ```
 
----
+Best hyperparameters found per arch:
 
-## Loading the YAML in Python
+| Model | Optimizer | LR | Batch | Dropout | Notes |
+|---|---|---|---|---|---|
+| ResNet50 | AdamW | 4.3e-5 | 16 | 0.13 | label_smoothing=0.098 |
+| EfficientNet-B0 | SGD | 8.1e-3 | 64 | 0.47 | — |
+| MobileNetV2 | SGD | 2.2e-3 | 32 | 0.20 | backbone unfrozen |
 
-We use **PyYAML** to read the configuration file.
+### 2. Evaluate on the test set
 
-### Example
-
-```python
-import yaml
-
-with open("configs/data_split.yaml", "r") as f:
-    config = yaml.safe_load(f)
-
-train_data = config["splits"]["train"]
-val_data = config["splits"]["val"]
-test_data = config["splits"]["test"]
+```bash
+python -m src.evaluate --arch resnet50
+python -m src.evaluate --arch efficientnet_b0
+python -m src.evaluate --arch mobilenet_v2
 ```
 
+Writes per-class accuracy, confusion matrix, and metrics JSON to `outputs/eval/<arch>/`.
+
+### 3. Benchmark inference speed
+
+```bash
+python scripts/benchmark_speed.py
+```
+
+Writes latency and throughput results to `outputs/speed_benchmark/`.
+
+### 4. Grad-CAM visualization
+
+Compare all three models on the same image, showing early vs. late convolutional
+layer attribution side by side:
+
+```bash
+python scripts/gradcam_compare.py --image ../dataset/Taco/some_image.jpg
+```
+
+Output: `outputs/gradcam_compare.png`
+
+To save to a different path:
+
+```bash
+python scripts/gradcam_compare.py \
+    --image ../dataset/Taco/some_image.jpg \
+    --output outputs/gradcam_taco.png
+```
+
+Single-arch Grad-CAM (picks the best checkpoint automatically via the summary JSON):
+
+```bash
+python -m src.gradcam \
+    --arch resnet50 \
+    --checkpoint outputs/checkpoints/resnet50/trial_18/resnet50_trial18_best.pt \
+    --image ../dataset/Taco/some_image.jpg
+```
+
+### 5. Generate report figures
+
+```bash
+python scripts/report.py
+```
+
+Writes accuracy plots, Optuna optimization history, and a comparison table to
+`outputs/report/`.
+
+### 6. Analyze confusion patterns
+
+```bash
+python scripts/analyze_confusions.py
+```
+
+Writes top confusion pairs per arch to `outputs/eval/<arch>/top_confusions.csv`.
+
 ---
 
-### Why Use `yaml.safe_load`?
+## Project structure
 
-* Prevents execution of arbitrary code
-* Safer for loading configuration files
-* Recommended over `yaml.load`
-
----
-
-## Summary
-
-* Use a virtual environment (`venv/`) for dependency isolation
-* Track dependencies with `requirements.txt`
-* Use a YAML file to define dataset splits
-* Load YAML configs using `PyYAML` for integration into the training pipeline
-
----
+```
+CSCI611-FinalProject/
+├── configs/
+│   └── data_split.yaml          # train/val/test manifest (seed=42)
+├── outputs/
+│   ├── checkpoints/             # per-trial .pt weights (gitignored except best)
+│   ├── eval/                    # per-arch confusion matrices & metrics
+│   ├── report/                  # figures and comparison_table.csv
+│   ├── speed_benchmark/         # latency / throughput JSON + plots
+│   ├── optuna_studies/          # Optuna .db files for resuming sweeps
+│   ├── *_best_summary.json      # winning trial number + hyperparams per arch
+│   └── gradcam_compare*.png     # Grad-CAM comparison figures
+├── scripts/
+│   ├── analyze_confusions.py    # confusion matrix analysis
+│   ├── benchmark_speed.py       # inference speed benchmark
+│   ├── generate_split_manifest.py
+│   ├── gradcam_compare.py       # early vs. late layer Grad-CAM across all arches
+│   └── report.py                # report figures and tables
+└── src/
+    ├── data_prep.py             # dataset loading, transforms, manifest parsing
+    ├── evaluate.py              # test-set evaluation
+    ├── gradcam.py               # Grad-CAM implementation
+    ├── models.py                # model factories + Grad-CAM target layer registry
+    ├── train.py                 # shared training loop
+    ├── train_efficientnet.py    # EfficientNet-B0 Optuna sweep
+    ├── train_mobilenet.py       # MobileNetV2 Optuna sweep
+    ├── train_resnet.py          # ResNet50 Optuna sweep
+    └── tune_optuna.py           # shared Optuna objective + trial logic
+```
