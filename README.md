@@ -97,6 +97,9 @@ Best hyperparameters found per arch:
 
 ### 2. Evaluate on the test set
 
+> **Training is not required.** The best checkpoint for each architecture is
+> committed to the repo. You only need the dataset downloaded locally (step above).
+
 ```bash
 python -m src.evaluate --arch resnet50
 python -m src.evaluate --arch efficientnet_b0
