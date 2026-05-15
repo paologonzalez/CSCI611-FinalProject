@@ -171,7 +171,9 @@ Writes top confusion pairs per arch to `outputs/eval/<arch>/top_confusions.csv`.
 ## Project structure
 
 ```
-CSCI611-FinalProject/
+FinalProject/
+├── CSCI611_FinalProject_Slides.pdf  # presentation slides
+├── Final_Project_Report.pdf         # written report
 ├── configs/
 │   └── data_split.yaml              # train/val/test manifest (seed=42)
 ├── outputs/
@@ -181,7 +183,8 @@ CSCI611-FinalProject/
 │   ├── report/                      # figures and comparison_table.csv
 │   ├── speed_benchmark/             # latency / throughput JSON + plots
 │   ├── *_best_summary.json          # winning trial number + hyperparams per arch
-│   └── gradcam_compare*.png         # Grad-CAM comparison figures
+│   ├── gradcam.png                  # single-arch Grad-CAM overlay
+│   └── gradcam_compare*.png         # cross-arch Grad-CAM comparisons
 ├── scripts/
 │   ├── analyze_confusions.py        # confusion matrix analysis
 │   ├── benchmark_speed.py           # inference speed benchmark
