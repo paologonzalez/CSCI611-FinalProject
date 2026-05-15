@@ -4,15 +4,19 @@ scripts/gradcam_compare.py
 ==========================
 
 Run Grad-CAM on the *same* image across all three best-trained
-architectures and produce a single side-by-side figure that shows:
+architectures and produce a 2-row grid figure:
 
-  [ original | MobileNetV2 | EfficientNet-B0 | ResNet50 ]
+  Row 0 (Early layer):  [ original | MobileNetV2 | EfficientNet-B0 | ResNet50 ]
+  Row 1 (Late layer):   [           | MobileNetV2 | EfficientNet-B0 | ResNet50 ]
+
+The original image spans both rows in column 0. Each heatmap panel has
+a caption below it naming the exact layer used (e.g. "layer1 — residual
+stage 1"). The top-row uses an early convolutional layer; the bottom row
+uses the final convolutional layer (the same target used in the original
+single-row figure).
 
 Each per-arch panel is titled with the model's top-1 prediction and
-softmax confidence. If the image's parent directory name matches one of
-the dataset classes (which is the case for any image pulled directly out
-of `dataset/<Class>/...`), the title is colored green for a correct
-prediction and red for a wrong one.
+softmax confidence, colored green/red for correct/wrong.
 
 Why a separate script from `src/gradcam.py`?
     `src/gradcam.py` is a clean single-arch tool. The cross-architecture
@@ -71,6 +75,28 @@ ARCH_DISPLAY_NAMES: Dict[str, str] = {
     "resnet50": "ResNet50",
 }
 
+# Early-layer target for each arch.  These are the first meaningful
+# residual/MBConv stages -- shallow enough to show low-level texture
+# responses, giving a visible contrast against the semantic late-layer maps.
+EARLY_LAYERS: Dict[str, str] = {
+    "resnet50":        "layer1",      # residual stage 1, 56×56 feature maps
+    "efficientnet_b0": "features.2",  # MBConv stage 2
+    "mobilenet_v2":    "features.4",  # inverted residual block 4
+}
+
+# Human-readable captions that appear under each heatmap panel.
+EARLY_LAYER_CAPTIONS: Dict[str, str] = {
+    "resnet50":        "layer1  (residual stage 1)",
+    "efficientnet_b0": "features.2  (MBConv stage 2)",
+    "mobilenet_v2":    "features.4  (inverted residual 4)",
+}
+
+LATE_LAYER_CAPTIONS: Dict[str, str] = {
+    "resnet50":        "layer4  (residual stage 4)",
+    "efficientnet_b0": "features.8  (final conv block)",
+    "mobilenet_v2":    "features.18  (final expansion conv)",
+}
+
 
 # ---------------------------------------------------------------------------
 # Checkpoint discovery
@@ -118,16 +144,15 @@ def predict_and_attribute(
     num_classes: int,
     device: torch.device,
     top_k: int = 3,
-) -> Tuple[np.ndarray, List[Tuple[int, float]]]:
-    """Load `arch`, run a forward pass + Grad-CAM, return:
-        (heatmap, top_k_predictions)
-    where `top_k_predictions` is a list of (class_idx, probability) pairs
-    sorted by probability descending. The first entry is top-1.
+) -> Tuple[np.ndarray, np.ndarray, List[Tuple[int, float]]]:
+    """Load `arch`, run Grad-CAM on both the early and late target layers.
 
-    We do one `torch.no_grad()` forward to read softmax probabilities
-    (Grad-CAM by itself only returns the argmax). Then we ask
-    `compute_gradcam` to attribute the *top-1* class so the heatmap and
-    the headline prediction agree.
+    Returns:
+        (early_heatmap, late_heatmap, top_k_predictions)
+
+    One `torch.no_grad()` forward extracts softmax probabilities; two
+    separate Grad-CAM passes (one per layer) then attribute the top-1
+    predicted class so every heatmap corresponds to the same decision.
     """
     built = build_model(arch, num_classes=num_classes, pretrained=False)
     state = torch.load(checkpoint_path, map_location=device)
@@ -145,15 +170,25 @@ def predict_and_attribute(
             for p, i in zip(top_probs, top_idx)
         ]
 
-    # Pass 2: Grad-CAM attributing the top-1 predicted class.
     pred_idx = top_predictions[0][0]
-    heatmap, _ = compute_gradcam(
+
+    # Pass 2a: Grad-CAM on the early convolutional layer.
+    early_heatmap, _ = compute_gradcam(
+        model=built.model,
+        image_tensor=image_tensor,
+        target_layer_name=EARLY_LAYERS[arch],
+        target_class=pred_idx,
+    )
+
+    # Pass 2b: Grad-CAM on the late (final) convolutional layer.
+    late_heatmap, _ = compute_gradcam(
         model=built.model,
         image_tensor=image_tensor,
         target_layer_name=built.gradcam_target_layer,
         target_class=pred_idx,
     )
-    return heatmap, top_predictions
+
+    return early_heatmap, late_heatmap, top_predictions
 
 
 # ---------------------------------------------------------------------------
@@ -162,74 +197,103 @@ def predict_and_attribute(
 
 def build_figure(
     image_tensor: torch.Tensor,
-    per_arch: Dict[str, Tuple[np.ndarray, List[Tuple[int, float]]]],
+    per_arch: Dict[str, Tuple[np.ndarray, np.ndarray, List[Tuple[int, float]]]],
     class_names: List[str],
     true_label: Optional[str],
     output_path: Path,
 ) -> None:
-    """Compose a 1-row figure: original on the left, then one Grad-CAM
-    overlay per architecture, each titled with its top-3 predictions.
+    """Compose a 2-row grid figure:
+
+        Row 0 (Early layer):  Original  | Arch-1  | Arch-2  | Arch-3
+        Row 1 (Late  layer):  (blank)   | Arch-1  | Arch-2  | Arch-3
+
+    The original image spans both rows in column 0. Each heatmap panel
+    has a caption below it (via xlabel) naming the exact target layer.
     """
     import matplotlib
-    matplotlib.use("Agg")  # headless: no display server required.
+    matplotlib.use("Agg")
     import matplotlib.pyplot as plt
+    import matplotlib.gridspec as gridspec
 
-    # We display the *cropped, denormalized* tensor (224x224 view of the
-    # input) so the heatmap aligns to what the model actually saw, not
-    # to the larger original.
     display_image = denormalize_for_display(image_tensor[0])
 
-    n_cols = 1 + len(per_arch)
-    # Figure is a touch taller than before to make room for the 3-line
-    # ranked prediction title above each overlay panel.
-    fig, axes = plt.subplots(1, n_cols, figsize=(4 * n_cols, 5.2), dpi=150)
+    present_archs = [a for a in ARCHITECTURES if a in per_arch]
+    n_arch = len(present_archs)
+    n_cols = 1 + n_arch
 
-    # Column 0: input image.
-    axes[0].imshow(display_image)
-    input_title = "Input"
+    fig = plt.figure(figsize=(4 * n_cols, 10), dpi=150)
+    gs = gridspec.GridSpec(
+        2, n_cols, figure=fig,
+        hspace=0.55,   # vertical gap between rows
+        wspace=0.15,
+    )
+
+    # Column 0: original image, spans both rows.
+    ax_orig = fig.add_subplot(gs[:, 0])
+    ax_orig.imshow(display_image)
+    orig_title = "Input"
     if true_label is not None:
-        input_title += f"\nTrue: {true_label}"
-    axes[0].set_title(input_title, fontsize=11)
-    axes[0].axis("off")
+        orig_title += f"\nTrue: {true_label}"
+    ax_orig.set_title(orig_title, fontsize=11)
+    ax_orig.axis("off")
 
-    # Columns 1..N: per-arch overlays.
-    for ax, arch in zip(axes[1:], ARCHITECTURES):
-        if arch not in per_arch:
-            ax.axis("off")
-            ax.set_title(f"{ARCH_DISPLAY_NAMES[arch]}\n(no checkpoint)",
-                         fontsize=10, color="gray")
-            continue
+    row_labels = ["Early layer", "Late layer"]
+    row_axes: List = []  # first arch axis per row, for the row-label annotation
 
-        heatmap, top_predictions = per_arch[arch]
-        overlay = overlay_heatmap_on_image(display_image, heatmap)
-        ax.imshow(overlay)
+    for row, (layer_key, caption_dict) in enumerate(
+        [("early", EARLY_LAYER_CAPTIONS), ("late", LATE_LAYER_CAPTIONS)]
+    ):
+        for col, arch in enumerate(present_archs):
+            ax = fig.add_subplot(gs[row, col + 1])
+            if col == 0:
+                row_axes.append(ax)
 
-        # Build a ranked, monospace-friendly title showing top-1..top-k.
-        # Using monospace lets the percentages line up across rows even
-        # though class names vary in length.
-        title_lines = [ARCH_DISPLAY_NAMES[arch]]
-        for rank, (idx, prob) in enumerate(top_predictions, start=1):
-            title_lines.append(
-                f"{rank}. {class_names[idx]:<14} {prob * 100:5.1f}%"
-            )
-        title = "\n".join(title_lines)
+            early_hm, late_hm, top_predictions = per_arch[arch]
+            heatmap = early_hm if layer_key == "early" else late_hm
+            overlay = overlay_heatmap_on_image(display_image, heatmap)
+            ax.imshow(overlay)
 
-        # Color by correctness of the *top-1* prediction. We don't try to
-        # color individual lines because matplotlib titles are one color
-        # per call -- the rank-1 line is what the audience reads first.
-        pred_name = class_names[top_predictions[0][0]]
-        if true_label is not None:
-            color = "green" if pred_name == true_label else "red"
-            ax.set_title(title, fontsize=9, color=color, fontfamily="monospace")
-        else:
-            ax.set_title(title, fontsize=9, fontfamily="monospace")
-        ax.axis("off")
+            # Title: arch name + ranked predictions (top row only, to avoid
+            # cluttering the late-row which shares the same predictions).
+            if row == 0:
+                title_lines = [ARCH_DISPLAY_NAMES[arch]]
+                for rank, (idx, prob) in enumerate(top_predictions, start=1):
+                    title_lines.append(
+                        f"{rank}. {class_names[idx]:<14} {prob * 100:5.1f}%"
+                    )
+                title = "\n".join(title_lines)
+                pred_name = class_names[top_predictions[0][0]]
+                if true_label is not None:
+                    color = "green" if pred_name == true_label else "red"
+                    ax.set_title(title, fontsize=9, color=color,
+                                 fontfamily="monospace")
+                else:
+                    ax.set_title(title, fontsize=9, fontfamily="monospace")
+
+            # Caption below the image naming the exact layer.
+            ax.set_xlabel(caption_dict[arch], fontsize=8, labelpad=4)
+            ax.xaxis.set_label_position("bottom")
+            ax.tick_params(bottom=False, left=False,
+                           labelbottom=False, labelleft=False)
+            for spine in ax.spines.values():
+                spine.set_visible(False)
+
+    # Row annotations: "Early layer" / "Late layer" rotated on the y-axis of
+    # the first arch column in each row.  We kept references in row_axes.
+    for ax_first, label in zip(row_axes, row_labels):
+        ax_first.annotate(
+            label,
+            xy=(0, 0.5), xycoords="axes fraction",
+            xytext=(-48, 0), textcoords="offset points",
+            va="center", ha="right",
+            fontsize=10, fontweight="bold",
+            rotation=90,
+        )
 
     fig.suptitle(
-        "Grad-CAM comparison across architectures",
-        fontsize=13, y=1.02,
+        "Grad-CAM: early vs. late convolutional layer across architectures",
+        fontsize=13, y=1.01,
     )
-    fig.tight_layout()
     output_path.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(output_path, bbox_inches="tight")
     plt.close(fig)
@@ -302,7 +366,7 @@ def main() -> int:
     if true_label is not None:
         print(f"True label: {true_label}")
 
-    per_arch: Dict[str, Tuple[np.ndarray, List[Tuple[int, float]]]] = {}
+    per_arch: Dict[str, Tuple[np.ndarray, np.ndarray, List[Tuple[int, float]]]] = {}
     for arch in ARCHITECTURES:
         try:
             ckpt = find_best_checkpoint(arch, output_dir)
@@ -310,18 +374,15 @@ def main() -> int:
             print(f"  [skip] {arch}: {e}")
             continue
 
-        heatmap, top_predictions = predict_and_attribute(
+        early_heatmap, late_heatmap, top_predictions = predict_and_attribute(
             arch=arch,
             checkpoint_path=ckpt,
             image_tensor=image_tensor,
             num_classes=manifest.num_classes,
             device=device,
         )
-        per_arch[arch] = (heatmap, top_predictions)
+        per_arch[arch] = (early_heatmap, late_heatmap, top_predictions)
 
-        # Plain-text summary line for stdout -- shows the same top-3
-        # ranking that ends up in the figure title, useful when running
-        # over many images from a shell script.
         pred_idx = top_predictions[0][0]
         is_correct = (
             true_label is not None and class_names[pred_idx] == true_label
