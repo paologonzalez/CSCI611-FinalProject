@@ -47,7 +47,7 @@ pip install -r requirements.txt
 
 Download from Kaggle: https://www.kaggle.com/datasets/harishkumardatalab/food-image-classification-dataset
 
-The dataset lives at `../dataset` (one level above the repo root), organized as:
+The dataset lives at `../../dataset` (one level above the repo root), organized as:
 
 ```
 dataset/
@@ -68,7 +68,7 @@ it from a different dataset root:
 
 ```bash
 python scripts/generate_split_manifest.py \
-    --dataset-root ../dataset \
+    --dataset-root ../../dataset \
     --output configs/data_split.yaml
 ```
 
@@ -127,7 +127,7 @@ Compare all three models on the same image, showing early vs. late convolutional
 layer attribution side by side:
 
 ```bash
-python scripts/gradcam_compare.py --image ../dataset/Taco/some_image.jpg
+python scripts/gradcam_compare.py --image ../../dataset/Taco/some_image.jpg
 ```
 
 Output: `outputs/gradcam_compare.png`
@@ -136,7 +136,7 @@ To save to a different path:
 
 ```bash
 python scripts/gradcam_compare.py \
-    --image ../dataset/Taco/some_image.jpg \
+    --image ../../dataset/Taco/some_image.jpg \
     --output outputs/gradcam_taco.png
 ```
 
@@ -146,7 +146,7 @@ Single-arch Grad-CAM (picks the best checkpoint automatically via the summary JS
 python -m src.gradcam \
     --arch resnet50 \
     --checkpoint outputs/checkpoints/resnet50/trial_18/resnet50_trial18_best.pt \
-    --image ../dataset/Taco/some_image.jpg
+    --image ../../dataset/Taco/some_image.jpg
 ```
 
 ### 5. Generate report figures
@@ -171,35 +171,36 @@ Writes top confusion pairs per arch to `outputs/eval/<arch>/top_confusions.csv`.
 ## Project structure
 
 ```
-FinalProject/
-├── CSCI611_FinalProject_Slides.pdf  # presentation slides
-├── Final_Project_Report.pdf         # written report
-├── configs/
-│   └── data_split.yaml              # train/val/test manifest (seed=42)
-├── outputs/
-│   ├── checkpoints/                 # per-trial .pt weights (gitignored except best)
-│   ├── eval/                        # per-arch confusion matrices, metrics, top confusions
-│   ├── optuna_studies/              # Optuna .db files for resuming sweeps
-│   ├── report/                      # figures and comparison_table.csv
-│   ├── speed_benchmark/             # latency / throughput JSON + plots
-│   ├── *_best_summary.json          # winning trial number + hyperparams per arch
-│   ├── gradcam.png                  # single-arch Grad-CAM overlay
-│   └── gradcam_compare*.png         # cross-arch Grad-CAM comparisons
-├── scripts/
-│   ├── analyze_confusions.py        # confusion matrix analysis
-│   ├── benchmark_speed.py           # inference speed benchmark
-│   ├── generate_figures.py          # report figures and tables
-│   ├── generate_split_manifest.py   # create configs/data_split.yaml from dataset
-│   └── gradcam_compare.py           # early vs. late layer Grad-CAM across all arches
-├── src/
-│   ├── data_prep.py                 # dataset loading, transforms, manifest parsing
-│   ├── evaluate.py                  # test-set evaluation
-│   ├── gradcam.py                   # Grad-CAM implementation
-│   ├── models.py                    # model factories + Grad-CAM target layer registry
-│   ├── train.py                     # shared training loop
-│   ├── train_efficientnet.py        # EfficientNet-B0 Optuna sweep
-│   ├── train_mobilenet.py           # MobileNetV2 Optuna sweep
-│   ├── train_resnet.py              # ResNet50 Optuna sweep
-│   └── tune_optuna.py               # shared Optuna objective + trial logic
-└── requirements.txt
+CSCI611_Group4/                          # repo root
+└── FinalProject/
+    ├── CSCI611_FinalProject_Slides.pdf  # presentation slides
+    ├── Final_Project_Report.pdf         # written report
+    ├── configs/
+    │   └── data_split.yaml              # train/val/test manifest (seed=42)
+    ├── outputs/
+    │   ├── checkpoints/                 # per-trial .pt weights (gitignored except best)
+    │   ├── eval/                        # per-arch confusion matrices, metrics, top confusions
+    │   ├── optuna_studies/              # Optuna .db files for resuming sweeps
+    │   ├── report/                      # figures and comparison_table.csv
+    │   ├── speed_benchmark/             # latency / throughput JSON + plots
+    │   ├── *_best_summary.json          # winning trial number + hyperparams per arch
+    │   ├── gradcam.png                  # single-arch Grad-CAM overlay
+    │   └── gradcam_compare*.png         # cross-arch Grad-CAM comparisons
+    ├── scripts/
+    │   ├── analyze_confusions.py        # confusion matrix analysis
+    │   ├── benchmark_speed.py           # inference speed benchmark
+    │   ├── generate_figures.py          # report figures and tables
+    │   ├── generate_split_manifest.py   # create configs/data_split.yaml from dataset
+    │   └── gradcam_compare.py           # early vs. late layer Grad-CAM across all arches
+    ├── src/
+    │   ├── data_prep.py                 # dataset loading, transforms, manifest parsing
+    │   ├── evaluate.py                  # test-set evaluation
+    │   ├── gradcam.py                   # Grad-CAM implementation
+    │   ├── models.py                    # model factories + Grad-CAM target layer registry
+    │   ├── train.py                     # shared training loop
+    │   ├── train_efficientnet.py        # EfficientNet-B0 Optuna sweep
+    │   ├── train_mobilenet.py           # MobileNetV2 Optuna sweep
+    │   ├── train_resnet.py              # ResNet50 Optuna sweep
+    │   └── tune_optuna.py               # shared Optuna objective + trial logic
+    └── requirements.txt
 ```

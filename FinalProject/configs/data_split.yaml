@@ -1,4 +1,4 @@
-dataset_root: ../../dataset
+dataset_root: ../../../dataset
 seed: 42
 splits:
   train:
